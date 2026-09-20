@@ -9,7 +9,7 @@ export class LibraryUI {
 
     constructor(
         private bookLibrary: Library<Book>,
-        private userLibrary: Library<User>
+        private userLibrary: Library<User>,
     ) {
         this.appContainer = document.getElementById('app');
     }
@@ -31,7 +31,7 @@ export class LibraryUI {
         const leftCol = document.createElement('div');
         leftCol.className = 'col-md-5';
         leftCol.id = 'forms-container';
-        
+
         const rightCol = document.createElement('div');
         rightCol.className = 'col-md-7';
         rightCol.id = 'lists-container';
@@ -62,16 +62,16 @@ export class LibraryUI {
         const createInput = (id: string, placeholder: string, type: string = 'text') => {
             const wrapper = document.createElement('div');
             wrapper.className = 'mb-3';
-            
+
             const input = document.createElement('input');
             input.type = type;
             input.id = id;
             input.className = 'form-control';
             input.placeholder = placeholder;
-            
+
             const errorDiv = document.createElement('div');
             errorDiv.className = 'invalid-feedback';
-            
+
             wrapper.appendChild(input);
             wrapper.appendChild(errorDiv);
             return { wrapper, input, errorDiv };
@@ -93,12 +93,12 @@ export class LibraryUI {
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
+
             let isValid = true;
 
             if (!Validation.isRequired(titleInput.input.value)) {
                 titleInput.input.classList.add('is-invalid');
-                titleInput.errorDiv.textContent = 'Назва обов\'язкова';
+                titleInput.errorDiv.textContent = "Назва обов'язкова";
                 isValid = false;
             } else {
                 titleInput.input.classList.remove('is-invalid');
@@ -106,7 +106,7 @@ export class LibraryUI {
 
             if (!Validation.isRequired(authorInput.input.value)) {
                 authorInput.input.classList.add('is-invalid');
-                authorInput.errorDiv.textContent = 'Автор обов\'язковий';
+                authorInput.errorDiv.textContent = "Автор обов'язковий";
                 isValid = false;
             } else {
                 authorInput.input.classList.remove('is-invalid');
@@ -125,15 +125,14 @@ export class LibraryUI {
                     Date.now().toString(),
                     titleInput.input.value,
                     authorInput.input.value,
-                    parseInt(yearInput.input.value, 10)
+                    parseInt(yearInput.input.value, 10),
                 );
 
                 this.bookLibrary.add(newBook);
                 Storage.save('books', this.bookLibrary.getAll());
-                
+
                 form.reset();
                 this.renderLists();
-                
             }
         });
 
@@ -143,10 +142,10 @@ export class LibraryUI {
         container.appendChild(card);
     }
 
-        private renderLists(): void {
+    private renderLists(): void {
         const container = document.getElementById('lists-container');
         if (!container) return;
-        
+
         container.innerHTML = '';
 
         const booksHeader = document.createElement('h3');
@@ -167,13 +166,13 @@ export class LibraryUI {
         const listGroup = document.createElement('ul');
         listGroup.className = 'list-group mb-4 shadow-sm';
 
-        books.forEach(book => {
+        books.forEach((book) => {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
-            
+
             const bookInfo = document.createElement('span');
-            bookInfo.textContent = book.getBookInfo(); 
-            
+            bookInfo.textContent = book.getBookInfo();
+
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-sm btn-outline-danger';
             deleteBtn.textContent = 'Видалити';
@@ -190,5 +189,4 @@ export class LibraryUI {
 
         container.appendChild(listGroup);
     }
-
 }
