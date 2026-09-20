@@ -43,6 +43,7 @@ export class LibraryUI {
         this.appContainer.appendChild(container);
 
         this.renderBookForm(leftCol);
+        this.renderUserForm(leftCol);
         this.renderLists();
     }
 
@@ -188,5 +189,109 @@ export class LibraryUI {
         });
 
         container.appendChild(listGroup);
+
+        const usersHeader = document.createElement('h3');
+        usersHeader.className = 'mb-3 mt-4';
+        usersHeader.textContent = 'Список користувачів';
+        container.appendChild(usersHeader);
+
+        const users = this.userLibrary.getAll();
+        
+        if (users.length === 0) {
+            const emptyUsersMsg = document.createElement('p');
+            emptyUsersMsg.className = 'text-muted';
+            emptyUsersMsg.textContent = 'Немає зареєстрованих користувачів.';
+            container.appendChild(emptyUsersMsg);
+            return;
+        }
+
+        const userListGroup = document.createElement('ul');
+        userListGroup.className = 'list-group mb-4 shadow-sm';
+
+        users.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            const userInfo = document.createElement('span');
+            userInfo.textContent = user.getUserInfo();
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-outline-danger';
+            deleteBtn.textContent = 'Видалити';
+            deleteBtn.onclick = () => {
+                this.userLibrary.remove(user.id);
+                Storage.save('users', this.userLibrary.getAll());
+                this.renderLists();
+            };
+
+            li.appendChild(userInfo);
+            li.appendChild(deleteBtn);
+            userListGroup.appendChild(li);
+        });
+
+        container.appendChild(userListGroup);
+
     }
+
+    private renderUserForm(container: HTMLElement): void {
+        const card = document.createElement('div');
+        card.className = 'card mb-4 shadow-sm';
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        
+        const cardTitle = document.createElement('h5');
+        cardTitle.className = 'card-title mb-3';
+        cardTitle.textContent = 'Додати користувача';
+
+        const form = document.createElement('form');
+
+        // Створюємо поля
+        const nameWrapper = document.createElement('div');
+        nameWrapper.className = 'mb-3';
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-control';
+        nameInput.placeholder = 'Ім\'я користувача';
+        nameWrapper.appendChild(nameInput);
+
+        const emailWrapper = document.createElement('div');
+        emailWrapper.className = 'mb-3';
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.className = 'form-control';
+        emailInput.placeholder = 'Email';
+        emailWrapper.appendChild(emailInput);
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'btn btn-success w-100';
+        submitBtn.textContent = 'Додати користувача';
+
+        form.appendChild(nameWrapper);
+        form.appendChild(emailWrapper);
+        form.appendChild(submitBtn);
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (Validation.isRequired(nameInput.value) && Validation.isRequired(emailInput.value)) {
+                // ID користувача має бути тільки з цифр за завданням
+                const numericId = Math.floor(Math.random() * 1000000).toString();
+                const newUser = new User(numericId, nameInput.value, emailInput.value);
+                
+                this.userLibrary.add(newUser);
+                Storage.save('users', this.userLibrary.getAll());
+                
+                form.reset();
+                this.renderLists();
+            } else {
+                alert('Будь ласка, заповніть всі поля коректно.');
+            }
+        });
+
+        cardBody.appendChild(cardTitle);
+        cardBody.appendChild(form);
+        card.appendChild(cardBody);
+        container.appendChild(card);
+    }
+    
 }
