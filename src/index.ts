@@ -1,20 +1,22 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Library } from './services/Library';
+import { Book } from './models/Book';
+import { User } from './models/User';
+import { Storage } from './services/Storage';
+import { LibraryUI } from './ui/LibraryUI';
 
-const appContainer = document.getElementById('app');
+const savedBooks = Storage.get<Book[]>('books') || [];
+const savedUsers = Storage.get<User[]>('users') || [];
 
-if (appContainer) {
-    const container = document.createElement('div');
-    container.className = 'container mt-5 text-center';
+const bookInstances = savedBooks.map(b => new Book(b.id, b.title, b.author, b.year, b.isBorrowed));
+const userInstances = savedUsers.map(u => {
+    const user = new User(u.id, u.name, u.email);
+    user.borrowedBooks = u.borrowedBooks || [];
+    return user;
+});
 
-    const title = document.createElement('h1');
-    title.textContent = 'Система управління бібліотекою';
-    title.className = 'text-primary mb-4';
+const bookLibrary = new Library<Book>(bookInstances);
+const userLibrary = new Library<User>(userInstances);
 
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-success btn-lg';
-    btn.textContent = 'Bootstrap успішно підключено!';
-
-    container.appendChild(title);
-    container.appendChild(btn);
-    appContainer.appendChild(container);
-}
+const ui = new LibraryUI(bookLibrary, userLibrary);
+ui.render();
