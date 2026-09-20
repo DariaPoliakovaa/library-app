@@ -5,14 +5,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "test": "node --import tsx ./node_modules/mocha/bin/mocha.js \"tests/**/*.spec.ts\"",
-    "format": "prettier --write \"src/**/*.{ts,js,json,html,css}\"",
-    "lint": "eslint \"src/**/*.ts\"",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  },
+  "start": "vite",
+  "build": "vite build",
+  "test": "node --import tsx ./node_modules/mocha/bin/mocha.js \"tests/**/*.spec.ts\"",
+  "format": "prettier --write \"src/**/*.{ts,js,json,html,css}\"",
+  "lint": "eslint \"src/**/*.ts\"",
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d dist --dotfiles"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DariaPoliakovaa/library-app.git"
