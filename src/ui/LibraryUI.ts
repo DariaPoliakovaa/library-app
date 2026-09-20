@@ -3,9 +3,13 @@ import { Book } from '../models/Book';
 import { User } from '../models/User';
 import { Validation } from '../utils/validators';
 import { Storage } from '../services/Storage';
+import { Notifier } from './Notifier';
 
 export class LibraryUI {
     private appContainer: HTMLElement | null;
+    private currentPage: number = 1;
+    private readonly itemsPerPage: number = 5;
+    private searchQuery: string = '';
 
     constructor(
         private bookLibrary: Library<Book>,
@@ -143,94 +147,145 @@ export class LibraryUI {
         container.appendChild(card);
     }
 
-    private renderLists(): void {
+        private renderLists(): void {
         const container = document.getElementById('lists-container');
         if (!container) return;
-
         container.innerHTML = '';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control mb-4';
+        searchInput.placeholder = 'Пошук книг за назвою або автором...';
+        searchInput.value = this.searchQuery;
+        searchInput.addEventListener('input', (e) => {
+            this.searchQuery = (e.target as HTMLInputElement).value;
+            this.currentPage = 1;
+            this.renderLists();
+        });
+        container.appendChild(searchInput);
 
         const booksHeader = document.createElement('h3');
         booksHeader.className = 'mb-3';
-        booksHeader.textContent = 'Список книг';
+        booksHeader.textContent = 'Каталог книг';
         container.appendChild(booksHeader);
 
-        const books = this.bookLibrary.getAll();
+        const allBooks = this.bookLibrary.getAll();
+        const filteredBooks = allBooks.filter(b => 
+            b.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+            b.author.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
 
-        if (books.length === 0) {
-            const emptyMsg = document.createElement('p');
-            emptyMsg.className = 'text-muted';
-            emptyMsg.textContent = 'Бібліотека порожня. Додайте першу книгу!';
-            container.appendChild(emptyMsg);
-            return;
-        }
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const paginatedBooks = filteredBooks.slice(startIndex, startIndex + this.itemsPerPage);
 
         const listGroup = document.createElement('ul');
-        listGroup.className = 'list-group mb-4 shadow-sm';
+        listGroup.className = 'list-group mb-3 shadow-sm';
 
-        books.forEach((book) => {
+        const users = this.userLibrary.getAll();
+
+        paginatedBooks.forEach(book => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
-
+            li.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
+            
             const bookInfo = document.createElement('span');
-            bookInfo.textContent = book.getBookInfo();
+            bookInfo.innerHTML = `<strong>${book.title}</strong> - ${book.author} (${book.year})`;
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'd-flex gap-2 align-items-center';
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-outline-danger';
-            deleteBtn.textContent = 'Видалити';
-            deleteBtn.onclick = () => {
-                this.bookLibrary.remove(book.id);
-                Storage.save('books', this.bookLibrary.getAll());
-                this.renderLists();
-            };
+            if (book.isBorrowed) {
+                const borrower = users.find(u => u.borrowedBooks.includes(book.id));
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'badge bg-secondary';
+                statusBadge.textContent = borrower ? `Позичено: ${borrower.name}` : 'Позичено';
+                
+                const returnBtn = document.createElement('button');
+                returnBtn.className = 'btn btn-sm btn-outline-success';
+                returnBtn.textContent = 'Повернути';
+                returnBtn.onclick = () => {
+                    Notifier.notify('Обробка повернення...', 'info');
+                    setTimeout(() => {
+                        book.toggleBorrowStatus();
+                        if (borrower) borrower.returnBook(book.id);
+                        Storage.save('books', this.bookLibrary.getAll());
+                        Storage.save('users', this.userLibrary.getAll());
+                        Notifier.notify('Книгу успішно повернуто!', 'success');
+                        this.renderLists();
+                    }, 500);
+                };
+
+                actionsDiv.appendChild(statusBadge);
+                actionsDiv.appendChild(returnBtn);
+            } else {
+                const userSelect = document.createElement('select');
+                userSelect.className = 'form-select form-select-sm w-auto';
+                userSelect.innerHTML = `<option value="">Оберіть читача</option>` + 
+                    users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+
+                const borrowBtn = document.createElement('button');
+                borrowBtn.className = 'btn btn-sm btn-primary';
+                borrowBtn.textContent = 'Позичити';
+                borrowBtn.onclick = () => {
+                    if (!userSelect.value) {
+                        Notifier.notify('Будь ласка, оберіть користувача', 'danger');
+                        return;
+                    }
+                    const user = this.userLibrary.findById(userSelect.value);
+                    if (user) {
+                        if (!user.canBorrow()) {
+                            Notifier.showModal('Ліміт вичерпано!', `Користувач ${user.name} вже позичив 3 книги. Це максимум.`);
+                            return;
+                        }
+                        Notifier.notify('Реєструємо видачу книги...', 'info');
+                        setTimeout(() => {
+                            user.borrowBook(book.id);
+                            book.toggleBorrowStatus();
+                            Storage.save('books', this.bookLibrary.getAll());
+                            Storage.save('users', this.userLibrary.getAll());
+                            Notifier.notify('Книгу успішно видано!', 'success');
+                            this.renderLists();
+                        }, 800);
+                    }
+                };
+                actionsDiv.appendChild(userSelect);
+                actionsDiv.appendChild(borrowBtn);
+            }
 
             li.appendChild(bookInfo);
-            li.appendChild(deleteBtn);
+            li.appendChild(actionsDiv);
             listGroup.appendChild(li);
         });
 
         container.appendChild(listGroup);
 
-        const usersHeader = document.createElement('h3');
-        usersHeader.className = 'mb-3 mt-4';
-        usersHeader.textContent = 'Список користувачів';
-        container.appendChild(usersHeader);
+        const totalPages = Math.ceil(filteredBooks.length / this.itemsPerPage);
+        if (totalPages > 1) {
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'd-flex justify-content-center gap-3 mb-4';
 
-        const users = this.userLibrary.getAll();
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'btn btn-outline-primary btn-sm';
+            prevBtn.textContent = '← Попередня';
+            prevBtn.disabled = this.currentPage === 1;
+            prevBtn.onclick = () => { this.currentPage--; this.renderLists(); };
 
-        if (users.length === 0) {
-            const emptyUsersMsg = document.createElement('p');
-            emptyUsersMsg.className = 'text-muted';
-            emptyUsersMsg.textContent = 'Немає зареєстрованих користувачів.';
-            container.appendChild(emptyUsersMsg);
-            return;
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'align-self-center fw-bold';
+            pageInfo.textContent = `Сторінка ${this.currentPage} з ${totalPages}`;
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn btn-outline-primary btn-sm';
+            nextBtn.textContent = 'Наступна →';
+            nextBtn.disabled = this.currentPage === totalPages;
+            nextBtn.onclick = () => { this.currentPage++; this.renderLists(); };
+
+            paginationDiv.appendChild(prevBtn);
+            paginationDiv.appendChild(pageInfo);
+            paginationDiv.appendChild(nextBtn);
+            container.appendChild(paginationDiv);
         }
-
-        const userListGroup = document.createElement('ul');
-        userListGroup.className = 'list-group mb-4 shadow-sm';
-
-        users.forEach((user) => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
-
-            const userInfo = document.createElement('span');
-            userInfo.textContent = user.getUserInfo();
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-outline-danger';
-            deleteBtn.textContent = 'Видалити';
-            deleteBtn.onclick = () => {
-                this.userLibrary.remove(user.id);
-                Storage.save('users', this.userLibrary.getAll());
-                this.renderLists();
-            };
-
-            li.appendChild(userInfo);
-            li.appendChild(deleteBtn);
-            userListGroup.appendChild(li);
-        });
-
-        container.appendChild(userListGroup);
     }
+
 
     private renderUserForm(container: HTMLElement): void {
         const card = document.createElement('div');
@@ -244,7 +299,6 @@ export class LibraryUI {
 
         const form = document.createElement('form');
 
-        // Створюємо поля
         const nameWrapper = document.createElement('div');
         nameWrapper.className = 'mb-3';
         const nameInput = document.createElement('input');
@@ -273,7 +327,6 @@ export class LibraryUI {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             if (Validation.isRequired(nameInput.value) && Validation.isRequired(emailInput.value)) {
-                // ID користувача має бути тільки з цифр за завданням
                 const numericId = Math.floor(Math.random() * 1000000).toString();
                 const newUser = new User(numericId, nameInput.value, emailInput.value);
 
