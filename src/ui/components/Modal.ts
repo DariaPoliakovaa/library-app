@@ -5,7 +5,7 @@ export class Modal {
         const modal = document.createElement('div');
         modal.className = 'modal fade show d-block';
         modal.tabIndex = -1;
-        
+
         modal.innerHTML = `
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -14,10 +14,10 @@ export class Modal {
                     <div class="modal-footer"><button type="button" class="btn btn-secondary" id="close-modal">Закрити</button></div>
                 </div>
             </div>`;
-            
+
         document.body.appendChild(backdrop);
         document.body.appendChild(modal);
-        
+
         modal.querySelector('#close-modal')?.addEventListener('click', () => {
             modal.remove();
             backdrop.remove();
@@ -30,6 +30,8 @@ export class Modal {
         toast.style.zIndex = '9999';
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => { toast.remove(); }, 3000);
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
 }

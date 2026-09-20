@@ -7,17 +7,20 @@ import { BookList } from './components/BookList';
 import { UserList } from './components/UserList';
 
 export class AppRenderer {
-    constructor(private bookLibrary: Library<Book>, private userLibrary: Library<User>) {}
+    constructor(
+        private bookLibrary: Library<Book>,
+        private userLibrary: Library<User>,
+    ) {}
 
     public init(appContainer: HTMLElement): void {
         appContainer.innerHTML = '';
-        
+
         const row = document.createElement('div');
         row.className = 'row mt-5';
-        
+
         const leftCol = document.createElement('div');
         leftCol.className = 'col-md-5';
-        
+
         const rightCol = document.createElement('div');
         rightCol.className = 'col-md-7';
 
@@ -34,15 +37,15 @@ export class AppRenderer {
         const bookForm = new BookForm(this.bookLibrary, () => {
             bookList.render(booksContainer);
         });
-        
+
         const userForm = new UserForm(this.userLibrary, () => {
             userList.render(usersContainer);
-            bookList.render(booksContainer); 
+            bookList.render(booksContainer);
         });
-        
+
         bookForm.render(leftCol);
         userForm.render(leftCol);
-        
+
         bookList.render(booksContainer);
         userList.render(usersContainer);
     }

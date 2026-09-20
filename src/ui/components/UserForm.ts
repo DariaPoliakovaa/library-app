@@ -6,17 +6,21 @@ import { FormBuilder } from './FormBuilder';
 import { Modal } from './Modal';
 
 export class UserForm {
-    constructor(private userLibrary: Library<User>, private onUserAdded: () => void) {}
+    constructor(
+        private userLibrary: Library<User>,
+        private onUserAdded: () => void,
+    ) {}
 
     public render(container: HTMLElement): void {
         const card = document.createElement('div');
         card.className = 'card mb-4 shadow-sm';
-        card.innerHTML = '<div class="card-body"><h5 class="card-title mb-3">Додати користувача</h5></div>';
-        
+        card.innerHTML =
+            '<div class="card-body"><h5 class="card-title mb-3">Додати користувача</h5></div>';
+
         const form = document.createElement('form');
-        const nameInput = FormBuilder.createInput('user-name', 'Ім\'я користувача');
+        const nameInput = FormBuilder.createInput('user-name', "Ім'я користувача");
         const emailInput = FormBuilder.createInput('user-email', 'Email', 'email');
-        
+
         const submitBtn = document.createElement('button');
         submitBtn.className = 'btn btn-success w-100';
         submitBtn.textContent = 'Додати користувача';
@@ -25,7 +29,10 @@ export class UserForm {
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (Validation.isRequired(nameInput.input.value) && Validation.isRequired(emailInput.input.value)) {
+            if (
+                Validation.isRequired(nameInput.input.value) &&
+                Validation.isRequired(emailInput.input.value)
+            ) {
                 const numericId = Math.floor(Math.random() * 1000000).toString();
                 const newUser = new User(numericId, nameInput.input.value, emailInput.input.value);
                 this.userLibrary.add(newUser);

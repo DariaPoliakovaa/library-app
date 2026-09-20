@@ -11,12 +11,15 @@ export class BookList {
     private readonly itemsPerPage: number = 5;
     private searchQuery: string = '';
 
-    constructor(private bookLibrary: Library<Book>, private userLibrary: Library<User>) {}
+    constructor(
+        private bookLibrary: Library<Book>,
+        private userLibrary: Library<User>,
+    ) {}
 
     public render(targetContainer?: HTMLElement): void {
         if (targetContainer) this.container = targetContainer;
         if (!this.container) return;
-        
+
         this.container.innerHTML = '';
 
         const searchInput = document.createElement('input');
@@ -36,10 +39,13 @@ export class BookList {
         header.textContent = 'Каталог книг';
         this.container.appendChild(header);
 
-        const filteredBooks = this.bookLibrary.getAll().filter(b => 
-            b.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-            b.author.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
+        const filteredBooks = this.bookLibrary
+            .getAll()
+            .filter(
+                (b) =>
+                    b.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    b.author.toLowerCase().includes(this.searchQuery.toLowerCase()),
+            );
 
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const paginatedBooks = filteredBooks.slice(startIndex, startIndex + this.itemsPerPage);
@@ -49,18 +55,19 @@ export class BookList {
 
         const users = this.userLibrary.getAll();
 
-        paginatedBooks.forEach(book => {
+        paginatedBooks.forEach((book) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
+            li.className =
+                'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
             li.innerHTML = `<span><strong>${book.title}</strong> - ${book.author} (${book.year})</span>`;
-            
+
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'd-flex gap-2 align-items-center';
 
             if (book.isBorrowed) {
-                const borrower = users.find(u => u.borrowedBooks.includes(book.id));
+                const borrower = users.find((u) => u.borrowedBooks.includes(book.id));
                 actionsDiv.innerHTML = `<span class="badge bg-secondary">Позичено: ${borrower ? borrower.name : ''}</span>`;
-                
+
                 const returnBtn = Button.create('Повернути', 'btn-sm btn-outline-success', () => {
                     book.toggleBorrowStatus();
                     if (borrower) borrower.returnBook(book.id);
@@ -73,14 +80,20 @@ export class BookList {
             } else {
                 const userSelect = document.createElement('select');
                 userSelect.className = 'form-select form-select-sm w-auto';
-                userSelect.innerHTML = `<option value="">Оберіть читача</option>` + 
-                    users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+                userSelect.innerHTML =
+                    `<option value="">Оберіть читача</option>` +
+                    users.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
 
                 const borrowBtn = Button.create('Позичити', 'btn-sm btn-primary', () => {
-                    if (!userSelect.value) return Modal.toast('Будь ласка, оберіть користувача', 'danger');
+                    if (!userSelect.value)
+                        return Modal.toast('Будь ласка, оберіть користувача', 'danger');
                     const user = this.userLibrary.findById(userSelect.value);
                     if (user) {
-                        if (!user.canBorrow()) return Modal.show('Ліміт вичерпано!', `Користувач ${user.name} вже позичив 3 книги.`);
+                        if (!user.canBorrow())
+                            return Modal.show(
+                                'Ліміт вичерпано!',
+                                `Користувач ${user.name} вже позичив 3 книги.`,
+                            );
                         user.borrowBook(book.id);
                         book.toggleBorrowStatus();
                         Storage.save('books', this.bookLibrary.getAll());
@@ -105,11 +118,17 @@ export class BookList {
 
             const prevBtn = Button.create('← Попередня', 'btn-outline-primary btn-sm');
             prevBtn.disabled = this.currentPage === 1;
-            prevBtn.onclick = () => { this.currentPage--; this.render(); };
+            prevBtn.onclick = () => {
+                this.currentPage--;
+                this.render();
+            };
 
             const nextBtn = Button.create('Наступна →', 'btn-outline-primary btn-sm');
             nextBtn.disabled = this.currentPage === totalPages;
-            nextBtn.onclick = () => { this.currentPage++; this.render(); };
+            nextBtn.onclick = () => {
+                this.currentPage++;
+                this.render();
+            };
 
             paginationDiv.innerHTML = `<span class="fw-bold">Сторінка ${this.currentPage} з ${totalPages}</span>`;
             paginationDiv.prepend(prevBtn);

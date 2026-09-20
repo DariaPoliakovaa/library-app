@@ -8,12 +8,16 @@ import { Modal } from './Modal';
 export class UserList {
     private container: HTMLElement | null = null;
 
-    constructor(private userLibrary: Library<User>, private bookLibrary: Library<Book>, private onUserChanged?: () => void) {}
+    constructor(
+        private userLibrary: Library<User>,
+        private bookLibrary: Library<Book>,
+        private onUserChanged?: () => void,
+    ) {}
 
     public render(targetContainer?: HTMLElement): void {
         if (targetContainer) this.container = targetContainer;
         if (!this.container) return;
-        
+
         this.container.innerHTML = '';
 
         const header = document.createElement('h3');
@@ -36,12 +40,13 @@ export class UserList {
 
         const books = this.bookLibrary.getAll();
 
-        users.forEach(user => {
+        users.forEach((user) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
-            
+            li.className =
+                'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
+
             const borrowedBookTitles = user.borrowedBooks
-                .map(bookId => books.find(b => b.id === bookId)?.title)
+                .map((bookId) => books.find((b) => b.id === bookId)?.title)
                 .filter(Boolean)
                 .join(', ');
 
@@ -51,7 +56,7 @@ export class UserList {
                     <small class="text-muted">Позичені книги: ${borrowedBookTitles || 'немає'}</small>
                 </div>
             `;
-            
+
             const infoSpan = document.createElement('div');
             infoSpan.innerHTML = userInfoHTML;
 
