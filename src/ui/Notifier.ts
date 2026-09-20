@@ -21,7 +21,7 @@ export class Notifier {
         const modal = document.createElement('div');
         modal.className = 'modal fade show d-block';
         modal.tabIndex = -1;
-        
+
         modal.innerHTML = `
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">

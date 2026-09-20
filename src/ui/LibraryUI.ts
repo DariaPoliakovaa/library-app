@@ -147,7 +147,7 @@ export class LibraryUI {
         container.appendChild(card);
     }
 
-        private renderLists(): void {
+    private renderLists(): void {
         const container = document.getElementById('lists-container');
         if (!container) return;
         container.innerHTML = '';
@@ -170,9 +170,10 @@ export class LibraryUI {
         container.appendChild(booksHeader);
 
         const allBooks = this.bookLibrary.getAll();
-        const filteredBooks = allBooks.filter(b => 
-            b.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-            b.author.toLowerCase().includes(this.searchQuery.toLowerCase())
+        const filteredBooks = allBooks.filter(
+            (b) =>
+                b.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                b.author.toLowerCase().includes(this.searchQuery.toLowerCase()),
         );
 
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
@@ -183,22 +184,23 @@ export class LibraryUI {
 
         const users = this.userLibrary.getAll();
 
-        paginatedBooks.forEach(book => {
+        paginatedBooks.forEach((book) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
-            
+            li.className =
+                'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
+
             const bookInfo = document.createElement('span');
             bookInfo.innerHTML = `<strong>${book.title}</strong> - ${book.author} (${book.year})`;
-            
+
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'd-flex gap-2 align-items-center';
 
             if (book.isBorrowed) {
-                const borrower = users.find(u => u.borrowedBooks.includes(book.id));
+                const borrower = users.find((u) => u.borrowedBooks.includes(book.id));
                 const statusBadge = document.createElement('span');
                 statusBadge.className = 'badge bg-secondary';
                 statusBadge.textContent = borrower ? `Позичено: ${borrower.name}` : 'Позичено';
-                
+
                 const returnBtn = document.createElement('button');
                 returnBtn.className = 'btn btn-sm btn-outline-success';
                 returnBtn.textContent = 'Повернути';
@@ -219,8 +221,9 @@ export class LibraryUI {
             } else {
                 const userSelect = document.createElement('select');
                 userSelect.className = 'form-select form-select-sm w-auto';
-                userSelect.innerHTML = `<option value="">Оберіть читача</option>` + 
-                    users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+                userSelect.innerHTML =
+                    `<option value="">Оберіть читача</option>` +
+                    users.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
 
                 const borrowBtn = document.createElement('button');
                 borrowBtn.className = 'btn btn-sm btn-primary';
@@ -233,7 +236,10 @@ export class LibraryUI {
                     const user = this.userLibrary.findById(userSelect.value);
                     if (user) {
                         if (!user.canBorrow()) {
-                            Notifier.showModal('Ліміт вичерпано!', `Користувач ${user.name} вже позичив 3 книги. Це максимум.`);
+                            Notifier.showModal(
+                                'Ліміт вичерпано!',
+                                `Користувач ${user.name} вже позичив 3 книги. Це максимум.`,
+                            );
                             return;
                         }
                         Notifier.notify('Реєструємо видачу книги...', 'info');
@@ -267,7 +273,10 @@ export class LibraryUI {
             prevBtn.className = 'btn btn-outline-primary btn-sm';
             prevBtn.textContent = '← Попередня';
             prevBtn.disabled = this.currentPage === 1;
-            prevBtn.onclick = () => { this.currentPage--; this.renderLists(); };
+            prevBtn.onclick = () => {
+                this.currentPage--;
+                this.renderLists();
+            };
 
             const pageInfo = document.createElement('span');
             pageInfo.className = 'align-self-center fw-bold';
@@ -277,7 +286,10 @@ export class LibraryUI {
             nextBtn.className = 'btn btn-outline-primary btn-sm';
             nextBtn.textContent = 'Наступна →';
             nextBtn.disabled = this.currentPage === totalPages;
-            nextBtn.onclick = () => { this.currentPage++; this.renderLists(); };
+            nextBtn.onclick = () => {
+                this.currentPage++;
+                this.renderLists();
+            };
 
             paginationDiv.appendChild(prevBtn);
             paginationDiv.appendChild(pageInfo);
@@ -285,7 +297,6 @@ export class LibraryUI {
             container.appendChild(paginationDiv);
         }
     }
-
 
     private renderUserForm(container: HTMLElement): void {
         const card = document.createElement('div');
