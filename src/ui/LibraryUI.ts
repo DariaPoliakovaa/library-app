@@ -196,7 +196,7 @@ export class LibraryUI {
         container.appendChild(usersHeader);
 
         const users = this.userLibrary.getAll();
-        
+
         if (users.length === 0) {
             const emptyUsersMsg = document.createElement('p');
             emptyUsersMsg.className = 'text-muted';
@@ -208,13 +208,13 @@ export class LibraryUI {
         const userListGroup = document.createElement('ul');
         userListGroup.className = 'list-group mb-4 shadow-sm';
 
-        users.forEach(user => {
+        users.forEach((user) => {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
-            
+
             const userInfo = document.createElement('span');
             userInfo.textContent = user.getUserInfo();
-            
+
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-sm btn-outline-danger';
             deleteBtn.textContent = 'Видалити';
@@ -230,7 +230,6 @@ export class LibraryUI {
         });
 
         container.appendChild(userListGroup);
-
     }
 
     private renderUserForm(container: HTMLElement): void {
@@ -238,7 +237,7 @@ export class LibraryUI {
         card.className = 'card mb-4 shadow-sm';
         const cardBody = document.createElement('div');
         cardBody.className = 'card-body';
-        
+
         const cardTitle = document.createElement('h5');
         cardTitle.className = 'card-title mb-3';
         cardTitle.textContent = 'Додати користувача';
@@ -251,7 +250,7 @@ export class LibraryUI {
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.className = 'form-control';
-        nameInput.placeholder = 'Ім\'я користувача';
+        nameInput.placeholder = "Ім'я користувача";
         nameWrapper.appendChild(nameInput);
 
         const emailWrapper = document.createElement('div');
@@ -277,10 +276,10 @@ export class LibraryUI {
                 // ID користувача має бути тільки з цифр за завданням
                 const numericId = Math.floor(Math.random() * 1000000).toString();
                 const newUser = new User(numericId, nameInput.value, emailInput.value);
-                
+
                 this.userLibrary.add(newUser);
                 Storage.save('users', this.userLibrary.getAll());
-                
+
                 form.reset();
                 this.renderLists();
             } else {
@@ -293,5 +292,4 @@ export class LibraryUI {
         card.appendChild(cardBody);
         container.appendChild(card);
     }
-    
 }
