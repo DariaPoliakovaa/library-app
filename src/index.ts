@@ -8,8 +8,10 @@ import { LibraryUI } from './ui/LibraryUI';
 const savedBooks = Storage.get<Book[]>('books') || [];
 const savedUsers = Storage.get<User[]>('users') || [];
 
-const bookInstances = savedBooks.map(b => new Book(b.id, b.title, b.author, b.year, b.isBorrowed));
-const userInstances = savedUsers.map(u => {
+const bookInstances = savedBooks.map(
+    (b) => new Book(b.id, b.title, b.author, b.year, b.isBorrowed),
+);
+const userInstances = savedUsers.map((u) => {
     const user = new User(u.id, u.name, u.email);
     user.borrowedBooks = u.borrowedBooks || [];
     return user;
